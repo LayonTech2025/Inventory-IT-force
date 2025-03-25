@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LAYON IT Inventory</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e6f7ff;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #4a4a4a;
+      position: relative;
+    }
+    .alerta-container {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+      font-weight: bold;
+      color: red;
+      display: none;
+    }
+    .alerta-container.active {
+      display: block;
+    }
+    .alerta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      animation: parpadeo 1s infinite;
+    }
+    @keyframes parpadeo {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .actions {
+      margin-top: 20px;
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .table-horizontal {
+      display: none;
+    }
+    .view-toggle {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .editable-cell {
+      position: relative;
+    }
+    .editable-cell input {
+      width: 100%;
+      padding: 5px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .save-btn {
+      margin-left: 10px;
+    }
+    #qr-reader {
+      width: 100%;
+      height: 300px;
+      margin-top: 10px;
+    }
+    .scan-options {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h1>LAYON IT Inventory</h1>
+  <div class="alerta-container" id="alertaContainer">
+    <div class="alerta">
+      <span>⚠️</span>
+      <span id="mensajeAlerta">Alerta de GARANTÍA VENCIDA:</span>
+    </div>
+  </div>
+  <div class="container">
+    <div class="form-group">
+      <label for="equipo">Equipo:</label>
+      <input type="text" id="equipo" placeholder="Ejemplo: Laptop">
+    </div>
+    <div class="form-group">
+      <label for="nombreUsuario">Nombre de Usuario:</label>
+      <input type="text" id="nombreUsuario" placeholder="Ejemplo: Juan Pérez">
+    </div>
+    <div class="form-group">
+      <label for="serie">Serie:</label>
+      <div class="scan-options">
+        <button onclick="activarEntradaManual()">Ingresar Manualmente</button>
+        <button onclick="activarLectorCodigoBarras()">Leer Código de Barras</button>
+        <button onclick="activarLectorQR()">Leer Código QR</button>
+      </div>
+      <input type="text" id="serie" placeholder="Número de Serie">
+      <div id="qr-reader"></div>
+    </div>
+    <div class="form-group">
+      <label for="marca">Marca:</label>
+      <input type="text" id="marca" placeholder="Ejemplo: Dell">
+    </div>
+    <div class="form-group">
+      <label for="modelo">Modelo:</label>
+      <input type="text" id="modelo" placeholder="Ejemplo: XPS 13">
+    </div>
+    <div class="form-group">
+      <label for="ubicacion">Ubicación:</label>
+      <input type="text" id="ubicacion" placeholder="Ejemplo: Oficina Principal">
+    </div>
+    <div class="form-group">
+      <label for="estatus">Estatus:</label>
+      <select id="estatus">
+        <option value="Activo">Activo</option>
+        <option value="Inactivo">Inactivo</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="hostname">HostName:</label>
+      <input type="text" id="hostname" placeholder="Ejemplo: LAPTOP-JUAN">
+    </div>
+    <div class="form-group">
+      <label for="sistemaOperativo">Sistema Operativo:</label>
+      <select id="sistemaOperativo">
+        <option value="Windows 10">Windows 10</option>
+        <option value="Windows 11">Windows 11</option>
+        <option value="MAC">MAC</option>
+        <option value="Win Server">Win Server</option>
+        <option value="Win Server Virtual">Win Server Virtual</option>
+        <option value="Soft Cámaras">Soft Cámaras</option>
+        <option value="No aplica">No aplica</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="fechaCompra">Fecha de Compra:</label>
+      <input type="date" id="fechaCompra">
+    </div>
+    <div class="form-group">
+      <label for="numeroFactura">Número de Factura:</label>
+      <input type="text" id="numeroFactura" placeholder="Ejemplo: FACT-12345">
+    </div>
+    <div class="form-group">
+      <label for="fechaAsignacion">Fecha de Asignación:</label>
+      <input type="date" id="fechaAsignacion">
+    </div>
+    <div class="form-group">
+      <label for="aniosGarantia">Años de Garantía:</label>
+      <input type="number" id="aniosGarantia" placeholder="Ejemplo: 2">
+    </div>
+    <div class="form-group">
+      <label for="diasRestantesGarantia">Días Restantes de Garantía:</label>
+      <input type="text" id="diasRestantesGarantia" readonly>
+    </div>
+    <div class="actions">
+      <button onclick="agregarEquipo()">Agregar Equipo</button>
+      <button onclick="exportarExcel()">Descargar Excel</button>
+      <button onclick="importarExcel()">Importar Excel</button>
+      <button onclick="leerExcelRed()">Leer desde Red</button>
+    </div>
+    <div class="view-toggle">
+      <button onclick="cambiarVista()">Cambiar Vista</button>
+    </div>
+    <table id="tablaEquipos">
+      <thead>
+        <tr>
+          <th>Equipo</th>
+          <th>Nombre de Usuario</th>
+          <th>Serie</th>
+          <th>Marca</th>
+          <th>Modelo</th>
+          <th>Ubicación</th>
+          <th>Estatus</th>
+          <th>HostName</th>
+          <th>Sistema Operativo</th>
+          <th>Fecha de Compra</th>
+          <th>Número de Factura</th>
+          <th>Fecha de Asignación</th>
+          <th>Años de Garantía</th>
+          <th>Días Restantes de Garantía</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <div id="vistaHorizontal" class="table-horizontal">
+      <div class="horizontal-item" id="horizontalTemplate" style="display: none;">
+        <div class="horizontal-field">
+          <label>Equipo:</label>
+          <div class="editable-cell">
+            <input type="text" value="">
+            <button class="save-btn" onclick="guardarEdicion(this)">Guardar</button>
+          </div>
+        </div>
+        <div class="horizontal-field">
+          <label>Nombre de Usuario:</label>
+          <div class="editable-cell">
+            <input type="text" value="">
+            <button class="save-btn" onclick="guardarEdicion(this)">Guardar</button>
+          </div>
+        </div>
+        <div class="horizontal-field">
+          <label>Serie:</label>
+          <div class="editable-cell">
+            <input type="text" value="">
+            <button class="save-btn" onclick="guardarEdicion(this)">Guardar</button>
+          </div>
+        </div>
+        <div class="horizontal-field">
+          <label>Marca:</label>
+          <div class="editable-cell">
+            <input type="text" value="">
+            <button class="save-btn" onclick="guardarEdicion(this)">Guardar</button>
+          </div>
+        </div>
+        <div class="horizontal-field">
+          <label>Modelo:</label>
+          <div class="editable-cell">
+            <input type="text" value="">
+            <button class="save-btn" onclick="guardarEdicion(this)">Guardar</button>
+          </div>
+        </div>
+        <div class="horizontal-field">
+          <label>Ubicación:</label>
+          <div class="editable-cell">
+            <input type="text" value="">
+            <button class="save-btn" onclick="guardarEdicion(this)">Guardar</button>
+          </div>
+        </div>
+        <div class="horizontal-field">
+          <label>Estatus:</label>
+          <div class="editable-cell">
+            <input type="text" value="">
+            <button class="save-btn" onclick="guardarEdicion(this)">Guardar</button>
+          </div>
+        </div>
+        <div class="horizontal-field">
+          <label>HostName:</label>
+          <div class="editable-cell">
+            <input type="text" value="">
+            <button class="save-btn" onclick="guardarEdicion(this)">Guardar</button>
+          </div>
+        </div>
+        <div class="horizontal-field">
+          <label>Sistema Operativo:</label>
+          <div class="editable-cell">
+            <input type="text" value="">
+            <button class="save-btn" onclick="guardarEdicion(this)">Guardar</button>
+          </div>
+        </div>
+        <div class="horizontal-field">
+          <label>Fecha de Compra:</label>
+          <div class="editable-cell">
+            <input type="text" value="">
+            <button class="save-btn" onclick="guardarEdicion(this)">Guardar</button>
+          </div>
+        </div>
+        <div class="horizontal-field">
+          <label>Número de Factura:</label>
+          <div class="editable-cell">
+            <input type="text" value="">
+            <button class="save-btn" onclick="guardarEdicion(this)">Guardar</button>
+          </div>
+        </div>
+        <div class="horizontal-field">
+          <label>Fecha de Asignación:</label>
+          <div class="editable-cell">
+            <input type="text" value="">
+            <button class="save-btn" onclick="guardarEdicion(this)">Guardar</button>
+          </div>
+        </div>
+        <div class="horizontal-field">
+          <label>Años de Garantía:</label>
+          <div class="editable-cell">
+            <input type="text" value="">
+            <button class="save-btn" onclick="guardarEdicion(this)">Guardar</button>
+          </div>
+        </div>
+        <div class="horizontal-field">
+          <label>Días Restantes de Garantía:</label>
+          <div class="editable-cell">
+            <input type="text" value="" readonly>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.4/minified/html5-qrcode.min.js"></script>
+  <script>
+    let inventario = [];
+    let vistaVertical = true;
+
+    function calcularDiasRestantes(fechaCompra, aniosGarantia) {
+      const fechaCompraDate = new Date(fechaCompra);
+      const fechaFinGarantia = new Date(fechaCompraDate.setFullYear(fechaCompraDate.getFullYear() + parseInt(aniosGarantia)));
+      const hoy = new Date();
+      const diferenciaMs = fechaFinGarantia - hoy;
+      return Math.max(0, Math.floor(diferenciaMs / (1000 * 60 * 60 * 24)));
+    }
+
+    function verificarAlertas() {
+      const alertaContainer = document.getElementById('alertaContainer');
+      const mensajeAlerta = document.getElementById('mensajeAlerta');
+      alertaContainer.classList.remove('active');
+      mensajeAlerta.textContent = 'Alerta de GARANTÍA VENCIDA:';
+
+      let hayAlerta = false;
+      inventario.forEach(item => {
+        const diasRestantes = calcularDiasRestantes(item.fechaCompra, item.aniosGarantia);
+        if (diasRestantes <= 30) {
+          hayAlerta = true;
+          mensajeAlerta.textContent += ` ${item.equipo} (${item.nombreUsuario}),`;
+        }
+      });
+
+      if (hayAlerta) {
+        mensajeAlerta.textContent = mensajeAlerta.textContent.slice(0, -1); // Eliminar última coma
+        alertaContainer.classList.add('active');
+      }
+    }
+
+    function agregarEquipo() {
+      const equipo = document.getElementById('equipo').value;
+      const nombreUsuario = document.getElementById('nombreUsuario').value;
+      const serie = document.getElementById('serie').value;
+      const marca = document.getElementById('marca').value;
+      const modelo = document.getElementById('modelo').value;
+      const ubicacion = document.getElementById('ubicacion').value;
+      const estatus = document.getElementById('estatus').value;
+      const hostname = document.getElementById('hostname').value;
+      const sistemaOperativo = document.getElementById('sistemaOperativo').value;
+      const fechaCompra = document.getElementById('fechaCompra').value;
+      const numeroFactura = document.getElementById('numeroFactura').value;
+      const fechaAsignacion = document.getElementById('fechaAsignacion').value;
+      const aniosGarantia = document.getElementById('aniosGarantia').value;
+      const diasRestantesGarantia = calcularDiasRestantes(fechaCompra, aniosGarantia);
+
+      const nuevoEquipo = {
+        equipo,
+        nombreUsuario,
+        serie,
+        marca,
+        modelo,
+        ubicacion,
+        estatus,
+        hostname,
+        sistemaOperativo,
+        fechaCompra,
+        numeroFactura,
+        fechaAsignacion,
+        aniosGarantia,
+        diasRestantesGarantia
+      };
+
+      inventario.push(nuevoEquipo);
+      actualizarTabla();
+      limpiarFormulario();
+      verificarAlertas();
+    }
+
+    function actualizarTabla() {
+      const tbody = document.querySelector('#tablaEquipos tbody');
+      tbody.innerHTML = '';
+      const vistaHorizontalContainer = document.getElementById('vistaHorizontal');
+      vistaHorizontalContainer.innerHTML = '';
+
+      inventario.forEach((item, index) => {
+        if (vistaVertical) {
+          const row = document.createElement('tr');
+          Object.keys(item).forEach(key => {
+            const cell = document.createElement('td');
+            if (key !== 'diasRestantesGarantia') {
+              cell.innerHTML = `
+                <div class="editable-cell">
+                  <input type="text" value="${item[key]}">
+                  <button class="save-btn" onclick="guardarEdicion(this, ${index}, '${key}')">Guardar</button>
+                </div>
+              `;
+            } else {
+              cell.textContent = item[key];
+            }
+            row.appendChild(cell);
+          });
+          const accionesCell = document.createElement('td');
+          accionesCell.innerHTML = `<button onclick="eliminarEquipo(${index})">Eliminar</button>`;
+          row.appendChild(accionesCell);
+          tbody.appendChild(row);
+        } else {
+          const template = document.getElementById('horizontalTemplate').cloneNode(true);
+          template.style.display = 'block';
+          template.removeAttribute('id');
+
+          Object.keys(item).forEach(key => {
+            const input = template.querySelector(`[label="${key}"] input`);
+            if (input) {
+              input.value = item[key];
+            }
+          });
+
+          vistaHorizontalContainer.appendChild(template);
+        }
+      });
+    }
+
+    function guardarEdicion(button, index, key) {
+      const input = button.parentElement.querySelector('input');
+      inventario[index][key] = input.value;
+
+      // Recalcular días restantes si se edita la fecha de compra o años de garantía
+      if (key === 'fechaCompra' || key === 'aniosGarantia') {
+        inventario[index].diasRestantesGarantia = calcularDiasRestantes(
+          inventario[index].fechaCompra,
+          inventario[index].aniosGarantia
+        );
+      }
+
+      actualizarTabla();
+      verificarAlertas();
+    }
+
+    function eliminarEquipo(index) {
+      inventario.splice(index, 1);
+      actualizarTabla();
+      verificarAlertas();
+    }
+
+    function limpiarFormulario() {
+      document.getElementById('equipo').value = '';
+      document.getElementById('nombreUsuario').value = '';
+      document.getElementById('serie').value = '';
+      document.getElementById('marca').value = '';
+      document.getElementById('modelo').value = '';
+      document.getElementById('ubicacion').value = '';
+      document.getElementById('estatus').value = 'Activo';
+      document.getElementById('hostname').value = '';
+      document.getElementById('sistemaOperativo').value = 'Windows 10';
+      document.getElementById('fechaCompra').value = '';
+      document.getElementById('numeroFactura').value = '';
+      document.getElementById('fechaAsignacion').value = '';
+      document.getElementById('aniosGarantia').value = '';
+      document.getElementById('diasRestantesGarantia').value = '';
+    }
+
+    function exportarExcel() {
+      const inventarioConFormulas = inventario.map(item => ({
+        ...item,
+        diasRestantesGarantia: { f: `=DATEDIF(TODAY(), DATEVALUE("${item.fechaCompra}")+${item.aniosGarantia}*365, "D")` }
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(inventarioConFormulas, { skipHeader: false, origin: "A2" });
+      const headers = [
+        "Equipo", "Nombre de Usuario", "Serie", "Marca", "Modelo", "Ubicación",
+        "Estatus", "HostName", "Sistema Operativo", "Fecha de Compra",
+        "Número de Factura", "Fecha de Asignación", "Años de Garantía", "Días Restantes de Garantía"
+      ];
+      XLSX.utils.sheet_add_aoa(worksheet, [headers], { origin: "A1" });
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventario');
+      XLSX.writeFile(workbook, 'LAYON_IT_Inventory.xlsx');
+    }
+
+    function importarExcel(event) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.xlsx';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[sheetName];
+          inventario = XLSX.utils.sheet_to_json(sheet);
+          actualizarTabla();
+          verificarAlertas();
+        };
+        reader.readAsArrayBuffer(file);
+      };
+      input.click();
+    }
+
+    function leerExcelRed() {
+      alert('Funcionalidad no implementada para leer archivos desde la red.');
+    }
+
+    function cambiarVista() {
+      vistaVertical = !vistaVertical;
+      document.getElementById('tablaEquipos').style.display = vistaVertical ? 'table' : 'none';
+      document.getElementById('vistaHorizontal').style.display = vistaVertical ? 'none' : 'block';
+      actualizarTabla();
+    }
+
+    function activarEntradaManual() {
+      const qrReaderDiv = document.getElementById('qr-reader');
+      qrReaderDiv.style.display = 'none';
+      document.getElementById('serie').readOnly = false;
+    }
+
+    function activarLectorCodigoBarras() {
+      activarLectorQR(); // El lector de códigos de barras usa la misma API que QR
+    }
+
+    function activarLectorQR() {
+      const qrReaderDiv = document.getElementById('qr-reader');
+      qrReaderDiv.style.display = 'block';
+      document.getElementById('serie').readOnly = true;
+
+      const html5QrCode = new Html5Qrcode("qr-reader");
+      const qrCodeSuccessCallback = (decodedText) => {
+        document.getElementById('serie').value = decodedText;
+        html5QrCode.stop().then(() => {
+          qrReaderDiv.style.display = 'none';
+        }).catch(err => {
+          console.error("Error al detener el escaneo:", err);
+        });
+      };
+
+      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+      html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
+        .catch(err => {
+          console.error("Error al iniciar el escaneo:", err);
+        });
+    }
+
+    document.getElementById('fechaCompra').addEventListener('change', () => {
+      const fechaCompra = document.getElementById('fechaCompra').value;
+      const aniosGarantia = document.getElementById('aniosGarantia').value;
+      if (fechaCompra && aniosGarantia) {
+        const diasRestantes = calcularDiasRestantes(fechaCompra, aniosGarantia);
+        document.getElementById('diasRestantesGarantia').value = diasRestantes;
+      }
+    });
+
+    document.getElementById('aniosGarantia').addEventListener('input', () => {
+      const fechaCompra = document.getElementById('fechaCompra').value;
+      const aniosGarantia = document.getElementById('aniosGarantia').value;
+      if (fechaCompra && aniosGarantia) {
+        const diasRestantes = calcularDiasRestantes(fechaCompra, aniosGarantia);
+        document.getElementById('diasRestantesGarantia').value = diasRestantes;
+      }
+    });
+  </script>
+</body>
+</html>
